@@ -154,13 +154,13 @@ fi
 log "...finished"
 
 # Create AMP user if required
-if ! ssh ${SSH_OPTS} root@${HOST} "id -o ${USER} > /dev/null 2>&1"; then
+if ! ssh ${SSH_OPTS} root@${HOST} "id ${USER} > /dev/null 2>&1"; then
     if [ -z "${SETUP_USER}" ]; then
         error "User '${USER}' does not exist on ${HOST}"
     fi
     log -n "Creating user '${USER}'..."
     ssh ${SSH_OPTS} root@${HOST}  "useradd ${USER} -s /bin/bash -d /home/${USER} -m" >> ${LOG} 2>&1
-    ssh ${SSH_OPTS} root@${HOST}  "id -o ${USER}" >> ${LOG} 2>&1 || fail "User was not created"
+    ssh ${SSH_OPTS} root@${HOST}  "id ${USER}" >> ${LOG} 2>&1 || fail "User was not created"
     log "...finished"
 fi
 
