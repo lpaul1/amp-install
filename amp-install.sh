@@ -55,12 +55,12 @@ function log() {
     if ! ${QUIET}; then
         echo $@
     fi
-    date >> ${LOG}
+    date +"Timestamp: %Y-%m-%d %H:%M:%S.%s" >> ${LOG}
     if [ "$1" == "-n" ]; then
         shift
     fi
     if [ "$*" != "..." ]; then
-        echo "$*" | sed -e "s/\.\.\.//" >> ${LOG}
+        echo "Log: $*" | sed -e "s/\.\.\.//" >> ${LOG}
     fi
 }
 
@@ -70,7 +70,7 @@ function fail() {
 }
 
 function error() {
-    echo "Error: $*"
+    echo "Error: $*" | tee -a "${LOG}"
     usage
 }
 
