@@ -1,12 +1,16 @@
 Cloudsoft AMP Installation
 ==========================
 
-AMP Install Script
+The [AMP Getting Started](https://s3-eu-west-1.amazonaws.com/cloudsoft-amp/AMP+Entities+2014-04-09.pdf)
+guide describes the installation of Cloudsoft AMP, using the following script.
+
+# AMP Install Script
 
 ### Options
 
 * `-e` Install example blueprint files
 * `-p` The SSH port to connect to (default 22)
+* `-r` Setup random entropy for SSH
 * `-s` Create and set up user account
 * `-u` Change the AMP username (default 'amp')
 * `-k` The private key to use for SSH (default '~/.ssh/id_rsa')
@@ -14,7 +18,7 @@ AMP Install Script
 
 ### Usage
 
-`amp-install.sh [-q] [-e] [-s] [-u user] [-k key] hostname`
+`amp-install.sh [-q] [-r] [-e] [-s] [-u user] [-k key] hostname`
 
 Installs AMP on the given hostname as 'amp' or the specified
 user. Optionally installs example blueprints and creates and
