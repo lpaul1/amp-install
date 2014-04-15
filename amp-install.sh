@@ -124,7 +124,7 @@ SSH_PUBLIC_KEY_DATA=$(ssh-keygen -y -f ${PRIVATE_KEY_FILE})
 echo "Installing AMP ${AMP_VERSION} on ${HOST}:$PORT as '${USER}'"
 
 # Pre-requisites for this script
-log "Configuring '${HOST}'..."
+log -n "Configuring '${HOST}'..."
 
 # Install packages
 for package in "curl" "sed" "tar"; do
@@ -135,9 +135,9 @@ log -n "..."
 # Install Java 6
 ssh ${SSH_OPTS} root@${HOST} "which java || { yum -y -q install java-1.6.0-openjdk || apt-get update && apt-get -y install openjdk-6-jre-headless; }" >> ${LOG} 2>&1
 if ssh ${SSH_OPTS} root@${HOST} "test -r /etc/lsb-release"; then
-    JAVA_HOME="/usr/lib/jvm/java-1.6.0-openjdk-amd64/"
-else
     JAVA_HOME="/usr/lib/jvm/jre/"
+else
+    JAVA_HOME="/usr/lib/jvm/java-1.6.0-openjdk-amd64/"
 fi
 ssh ${SSH_OPTS} root@${HOST}  "test -x ${JAVA_HOME}/bin/java" >> ${LOG} 2>&1 || fail "Java was not installed"
 log -n "..."
