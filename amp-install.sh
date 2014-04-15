@@ -17,7 +17,7 @@
 # AMP Install Script
 #
 # Usage:
-#     amp-install.sh [-h] [-q] [-e] [-s] [-u user] [-k key] hostname
+#     amp-install.sh [-h] [-q] [-r] [-e] [-s] [-u user] [-k key] [-p port] hostname
 #
 #set -x # DEBUG
 
@@ -30,6 +30,7 @@ Options
 
     -e  Install example blueprint files
     -p  The SSH port to connect to (default 22)
+    -r  Setup random entropy for SSH
     -s  Create and set up user account
     -u  Change the AMP username (default 'amp')
     -k  The private key to use for SSH (default '~/.ssh/id_rsa')
@@ -37,7 +38,7 @@ Options
 
 Usage
 
-    amp-install.sh [-q] [-e] [-s] [-u user] [-k key] hostname
+    amp-install.sh [-q] [-r] [-e] [-s] [-u user] [-k key] [-p port] hostname
 
 Installs AMP on the given hostname as 'amp' or the specified
 user. Optionally installs example blueprints and creates and
@@ -74,7 +75,7 @@ function error() {
 }
 
 function usage() {
-    echo "Usage: $(basename ${0}) [-h] [-q] [-e] [-s] [-u user] [-k key] [-p port] hostname"
+    echo "Usage: $(basename ${0}) [-h] [-q] [-r] [-e] [-s] [-u user] [-k key] [-p port] hostname"
     exit 1
 }
 
@@ -83,7 +84,7 @@ LOG="amp-install.log"
 AMP_VERSION="2.0.0-M1"
 SSH=ssh
 
-while getopts ":hesu:k:q:p:x" o; do
+while getopts ":hesu:k:q:p:r" o; do
     case "${o}" in
         h)  help
             ;;
@@ -94,6 +95,8 @@ while getopts ":hesu:k:q:p:x" o; do
         u)  AMP_USER="${OPTARG}"
             ;;
         k)  PRIVATE_KEY_FILE="${OPTARG}"
+            ;;
+        r)  SETUP_RANDOM=true
             ;;
         q)  QUIET=true
             ;;
@@ -114,7 +117,7 @@ USER="${AMP_USER:-amp}"
 PRIVATE_KEY_FILE="${PRIVATE_KEY_FILE:-${HOME}/.ssh/id_rsa}"
 
 SSH_OPTS="-o StrictHostKeyChecking=no -p ${PORT:-22}"
-if [ -f ${PRIVATE_KEY_FILE} ]; then
+if [ -f "${PRIVATE_KEY_FILE}" ]; then
     SSH_OPTS="${SSH_OPTS} -i ${PRIVATE_KEY_FILE}"
 else
     error "SSH private key '${PRIVATE_KEY_FILE}' not found"
@@ -142,16 +145,18 @@ fi
 ssh ${SSH_OPTS} root@${HOST}  "test -x ${JAVA_HOME}/bin/java" >> ${LOG} 2>&1 || fail "Java was not installed"
 log -n "..."
 
-# increase linux kernel entropy for faster ssh connections
-ssh ${SSH_OPTS} root@${HOST} "which rng-tools || { yum -y -q install rng-tools || apt-get -y install rng-tools; }" >> ${LOG} 2>&1
-if ssh ${SSH_OPTS} root@${HOST} "test -f /etc/default/rng-tools"; then
-    echo "HRNGDEVICE=/dev/urandom" | ssh ${SSH_OPTS} root@${HOST} "cat >> /etc/default/rng-tools"
-    ssh ${SSH_OPTS} root@${HOST} "/etc/init.d/rng-tools start" >> ${LOG} 2>&1
-else
-    echo "EXTRAOPTIONS=\"-r /dev/urandom\"" | ssh ${SSH_OPTS} root@${HOST} "cat >> /etc/sysconfig/rngd"
-    ssh ${SSH_OPTS} root@${HOST} "/etc/init.d/rngd start" >> ${LOG} 2>&1
+# Increase linux kernel entropy for faster ssh connections
+if [ "${SETUP_RANDOM}" ]; then
+    ssh ${SSH_OPTS} root@${HOST} "which rng-tools || { yum -y -q install rng-tools || apt-get -y install rng-tools; }" >> ${LOG} 2>&1
+    if ssh ${SSH_OPTS} root@${HOST} "test -f /etc/default/rng-tools"; then
+        echo "HRNGDEVICE=/dev/urandom" | ssh ${SSH_OPTS} root@${HOST} "cat >> /etc/default/rng-tools"
+        ssh ${SSH_OPTS} root@${HOST} "/etc/init.d/rng-tools start" >> ${LOG} 2>&1
+    else
+        echo "EXTRAOPTIONS=\"-r /dev/urandom\"" | ssh ${SSH_OPTS} root@${HOST} "cat >> /etc/sysconfig/rngd"
+        ssh ${SSH_OPTS} root@${HOST} "/etc/init.d/rngd start" >> ${LOG} 2>&1
+    fi
+    log "...done"
 fi
-log "...done"
 
 # Create AMP user if required
 if ! ssh ${SSH_OPTS} root@${HOST} "id ${USER} > /dev/null 2>&1"; then
