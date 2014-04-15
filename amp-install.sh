@@ -151,7 +151,7 @@ else
     echo "EXTRAOPTIONS=\"-r /dev/urandom\"" | ssh ${SSH_OPTS} root@${HOST} "cat >> /etc/sysconfig/rngd"
     ssh ${SSH_OPTS} root@${HOST} "/etc/init.d/rngd start" >> ${LOG} 2>&1
 fi
-log "...finished"
+log "...done"
 
 # Create AMP user if required
 if ! ssh ${SSH_OPTS} root@${HOST} "id ${USER} > /dev/null 2>&1"; then
@@ -161,7 +161,7 @@ if ! ssh ${SSH_OPTS} root@${HOST} "id ${USER} > /dev/null 2>&1"; then
     log -n "Creating user '${USER}'..."
     ssh ${SSH_OPTS} root@${HOST}  "useradd ${USER} -s /bin/bash -d /home/${USER} -m" >> ${LOG} 2>&1
     ssh ${SSH_OPTS} root@${HOST}  "id ${USER}" >> ${LOG} 2>&1 || fail "User was not created"
-    log "...finished"
+    log "...done"
 fi
 
 # Setup AMP user
@@ -175,7 +175,7 @@ if [ "${SETUP_USER}" ]; then
     ssh ${SSH_OPTS} root@${HOST} "chown -R ${USER}.${USER} /home/${USER}/.ssh"
     ssh ${SSH_OPTS} ${USER}@${HOST} "ssh-keygen -q -t rsa -N \"\" -f .ssh/id_rsa"
     ssh ${SSH_OPTS} ${USER}@${HOST} "ssh-keygen -y -f .ssh/id_rsa >> .ssh/authorized_keys"
-    log "...finished"
+    log "...done"
 fi
 
 # Setup AMP
@@ -183,7 +183,7 @@ log -n "Installing AMP..."
 ssh ${SSH_OPTS} ${USER}@${HOST} "curl -s -o cloudsoft-amp-${AMP_VERSION}.tar.gz https://s3-eu-west-1.amazonaws.com/cloudsoft-amp/cloudsoft-amp-${AMP_VERSION}.tar.gz"
 ssh ${SSH_OPTS} ${USER}@${HOST} "tar zxvf cloudsoft-amp-${AMP_VERSION}.tar.gz" >> ${LOG} 2>&1
 ssh ${SSH_OPTS} ${USER}@${HOST} "test -x cloudsoft-amp-${AMP_VERSION}/bin/amp" || fail "AMP was not downloaded correctly"
-log "...finished"
+log "...done"
 
 # Configure AMP if no brooklyn.properties
 if ! ssh ${SSH_OPTS} ${USER}@${HOST} "test -f .brooklyn/brooklyn.properties"; then
@@ -192,7 +192,7 @@ if ! ssh ${SSH_OPTS} ${USER}@${HOST} "test -f .brooklyn/brooklyn.properties"; th
     ssh ${SSH_OPTS} ${USER}@${HOST} "curl -s -o .brooklyn/brooklyn.properties http://brooklyncentral.github.io/use/guide/quickstart/brooklyn.properties"
     ssh ${SSH_OPTS} ${USER}@${HOST} "sed -i.bak 's/^# brooklyn.webconsole.security.provider = brooklyn.rest.security.provider.AnyoneSecurityProvider/brooklyn.webconsole.security.provider = brooklyn.rest.security.provider.AnyoneSecurityProvider/' .brooklyn/brooklyn.properties"
     ssh ${SSH_OPTS} ${USER}@${HOST} "curl -s -o .brooklyn/catalog.xml http://brooklyncentral.github.io/use/guide/quickstart/catalog.xml"
-    log "...finished"
+    log "...done"
 fi
 
 # Install example Jars and catalog
@@ -244,11 +244,11 @@ EOF
 EOF
     ssh ${SSH_OPTS} ${USER}@${HOST} "curl -s -o .brooklyn/MaxMind-GeoLiteCity.dat.gz http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz"
     ssh ${SSH_OPTS} ${USER}@${HOST} "gunzip .brooklyn/MaxMind-GeoLiteCity.dat.gz"
-    log "...finished"
+    log "...done"
 fi
 
 # Run AMP
 log -n "Starting AMP..."
 ssh -n -f ${SSH_OPTS} ${USER}@${HOST} "nohup ./cloudsoft-amp-${AMP_VERSION}/bin/amp launch >> ./cloudsoft-amp-${AMP_VERSION}/amp-console.log 2>&1 &"
-log "...finished"
+log "...done"
 echo "Console URL is http://${HOST}:8081/"
