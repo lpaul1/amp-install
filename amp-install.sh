@@ -136,13 +136,19 @@ done
 log -n "..."
 
 # Install Java 6
-ssh ${SSH_OPTS} root@${HOST} "which java || { yum -y -q install java-1.6.0-openjdk || apt-get update && apt-get -y install openjdk-6-jre-headless; }" >> ${LOG} 2>&1
-if ssh ${SSH_OPTS} root@${HOST} "test -r /etc/lsb-release"; then
-    JAVA_HOME="/usr/lib/jvm/jre/"
+if [ "${INSTALL_EXAMPLES}" ]; then
+    check="javac"
 else
-    JAVA_HOME="/usr/lib/jvm/java-1.6.0-openjdk-amd64/"
+    check="java"
+    JAVA_HOME="/usr"
 fi
-ssh ${SSH_OPTS} root@${HOST}  "test -x ${JAVA_HOME}/bin/java" >> ${LOG} 2>&1 || fail "Java was not installed"
+ssh ${SSH_OPTS} root@${HOST} "which ${check} || { yum -y -q install java-1.6.0-openjdk || apt-get update && apt-get -y install openjdk-6-jre-headless; }" >> ${LOG} 2>&1
+for java in "jre" "jdk" "java-1.6.0-openjdk" "java-1.6.0-openjdk-amd64"; do
+    if ssh ${SSH_OPTS} root@${HOST} "test -d /usr/lib/jvm/${java}"; then
+        JAVA_HOME="/usr/lib/jvm/${java}/" && echo "Java: ${JAVA_HOME}" >> ${LOG}
+    fi
+done
+ssh ${SSH_OPTS} root@${HOST}  "test -x ${JAVA_HOME}/bin/${check}" >> ${LOG} 2>&1 || fail "Java is not installed"
 log -n "..."
 
 # Increase linux kernel entropy for faster ssh connections
