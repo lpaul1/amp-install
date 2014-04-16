@@ -1,8 +1,10 @@
 Cloudsoft AMP Installation
 ==========================
 
-The [AMP Getting Started](https://s3-eu-west-1.amazonaws.com/cloudsoft-amp/AMP+Entities+2014-04-09.pdf)
-guide describes the installation of Cloudsoft AMP, using the following script.
+The [AMP Getting Started](https://s3-eu-west-1.amazonaws.com/cloudsoft-amp/AMPGettingStarted+2.0.0-M1.pdf)
+guide describes the installation of Cloudsoft AMP. The 
+[AMP Entities](https://s3-eu-west-1.amazonaws.com/cloudsoft-amp/AMP+Entities+2014-04-09.pdf)
+document lists the available entities and applications that are supported.
 
 # AMP Install Script
 
